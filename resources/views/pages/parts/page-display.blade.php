@@ -1,6 +1,6 @@
 <div dir="auto">
 
-    <h1 class="break-text" id="bkmrk-page-title">{{$page->name}}</h1>
+    <h4 class="break-text" id="bkmrk-page-title">{{$page->name}}</h4>
 
     <div style="clear:left;"></div>
 
