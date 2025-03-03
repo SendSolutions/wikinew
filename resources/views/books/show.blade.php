@@ -24,7 +24,7 @@
     </div>
 
     <main class="content-wrap card">
-        <h1 class="break-text">{{$book->name}}</h1>
+        <h4 class="break-text">{{$book->name}}</h4>
         <div refs="entity-search@contentView" class="book-content">
             <div class="text-muted break-text">{!! $book->descriptionHtml() !!}</div>
             @if(count($bookChildren) > 0)

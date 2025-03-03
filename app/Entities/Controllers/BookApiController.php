@@ -134,7 +134,7 @@ class BookApiController extends ApiController
             'create' => [
                 'name'                => ['required', 'string', 'max:255'],
                 'description'         => ['string', 'max:1900'],
-                'description_html'    => ['string', 'max:2000'],
+                'description_html'    => ['string'],
                 'tags'                => ['array'],
                 'image'               => array_merge(['nullable'], $this->getImageValidationRules()),
                 'default_template_id' => ['nullable', 'integer'],
@@ -142,7 +142,7 @@ class BookApiController extends ApiController
             'update' => [
                 'name'                => ['string', 'min:1', 'max:255'],
                 'description'         => ['string', 'max:1900'],
-                'description_html'    => ['string', 'max:2000'],
+                'description_html'    => ['string'],
                 'tags'                => ['array'],
                 'image'               => array_merge(['nullable'], $this->getImageValidationRules()),
                 'default_template_id' => ['nullable', 'integer'],

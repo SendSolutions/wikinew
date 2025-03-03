@@ -22,7 +22,7 @@
     </div>
 
     <main class="content-wrap card">
-        <h1 class="break-text">{{ $chapter->name }}</h1>
+        <h4 class="break-text">{{ $chapter->name }}</h4>
         <div refs="entity-search@contentView" class="chapter-content">
             <div class="text-muted break-text">{!! $chapter->descriptionHtml() !!}</div>
             @if(count($pages) > 0)

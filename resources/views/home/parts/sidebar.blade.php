@@ -15,7 +15,3 @@
         <a href="{{ url('/favourites')  }}" class="text-muted block py-xs">{{ trans('common.view_all') }}</a>
     </div>
 @endif
-
-
-
-
