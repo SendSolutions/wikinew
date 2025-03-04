@@ -82,7 +82,8 @@
                     <hr>
                     <p class="text-muted italic mb-m mt-xl">{{ trans('entities.books_empty_contents') }}</p>
                     <div class="icon-list block inline">
-                        @if(userCan('page-create', $book))
+                        {{-- Exibe o link de criar página somente se o livro não for releases-notes --}}
+                        @if(userCan('page-create', $book) && $book->slug !== 'releases-notes')
                             <a href="{{ $book->getUrl('/create-page') }}" class="icon-list-item text-page">
                                 <span class="icon">@icon('page')</span>
                                 <span>{{ trans('entities.books_empty_create_page') }}</span>
@@ -129,7 +130,8 @@
     <div class="actions mb-xl">
         <h5>{{ trans('common.actions') }}</h5>
         <div class="icon-list text-link">
-            @if(userCan('page-create', $book))
+            {{-- Exibe o link de criar página somente se o livro não for releases-notes --}}
+            @if(userCan('page-create', $book) && $book->slug !== 'releases-notes')
                 <a href="{{ $book->getUrl('/create-page') }}" data-shortcut="new" class="icon-list-item">
                     <span>@icon('add')</span>
                     <span>{{ trans('entities.pages_new') }}</span>
