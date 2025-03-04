@@ -22,6 +22,7 @@ use BookStack\Util\SimpleListOptions;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Throwable;
+use Carbon\Carbon; // Adicionado para manipulação de datas
 
 class BookController extends Controller
 {
@@ -127,15 +128,35 @@ class BookController extends Controller
     {
         $book = $this->queries->findVisibleBySlugOrFail($slug);
         $bookChildren = (new BookContents($book))->getTree(true);
+    
+        // Se for o livro de releases, aplica filtro de data baseado nos parâmetros de query
+        if ($book->slug === 'releases-notes') {
+            // Se os parâmetros não estiverem definidos, usar o ano e mês atuais
+            $year = $request->get('year', Carbon::now()->year);
+            $month = $request->get('month', Carbon::now()->month);
+    
+            $bookChildren = collect($bookChildren)->filter(function ($child) use ($year, $month) {
+                if (is_object($child) && !empty($child->update_date)) {
+                    $childDate = Carbon::parse($child->update_date);
+                    return $childDate->year == $year && $childDate->month == $month;
+                }
+                return false;
+            })->all();
+        } else {
+            // Para outros livros, use os capítulos normalmente.
+            $year = Carbon::now()->year;
+            $month = Carbon::now()->month;
+        }
+    
         $bookParentShelves = $book->shelves()->scopes('visible')->get();
-
+    
         View::incrementFor($book);
         if ($request->has('shelf')) {
             $this->shelfContext->setShelfContext(intval($request->get('shelf')));
         }
-
+    
         $this->setPageTitle($book->getShortName());
-
+    
         return view('books.show', [
             'book'              => $book,
             'current'           => $book,
@@ -144,8 +165,12 @@ class BookController extends Controller
             'watchOptions'      => new UserEntityWatchOptions(user(), $book),
             'activity'          => $activities->entityActivity($book, 20, 1),
             'referenceCount'    => $this->referenceFetcher->getReferenceCountToEntity($book),
+            // Passe também os valores atuais de ano e mês para a view
+            'currentYear'       => $year,
+            'currentMonth'      => $month,
         ]);
     }
+    
 
     /**
      * Show the form for editing the specified book.

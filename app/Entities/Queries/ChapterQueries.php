@@ -10,7 +10,7 @@ class ChapterQueries implements ProvidesEntityQueries
 {
     protected static array $listAttributes = [
         'id', 'slug', 'name', 'description', 'priority',
-        'book_id', 'created_at', 'updated_at', 'owned_by',
+        'book_id', 'created_at', 'updated_at', 'owned_by', 'update_date',
     ];
 
     public function start(): Builder
@@ -39,7 +39,7 @@ class ChapterQueries implements ProvidesEntityQueries
             })
             ->where('slug', '=', $chapterSlug)
             ->first();
-
+           // dd($chapter->toArray());
         if (is_null($chapter)) {
             throw new NotFoundException(trans('errors.chapter_not_found'));
         }

@@ -33,6 +33,14 @@
                 ])
             </form>
         </main>
+        @if(isset($book) && $book->slug === 'releases-notes')
+        <div class="form-group">
+            <label for="update_date">Data da Atualização</label>
+            <!-- Utilizando input do tipo date (formato Y-m-d) -->
+            <input type="date" class="form-control" id="update_date" name="update_date" value="{{ old('update_date') }}">
+        </div>
+        @endif
+
     </div>
 
 @stop

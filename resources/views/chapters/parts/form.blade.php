@@ -3,9 +3,24 @@
 @endpush
 
 {{ csrf_field() }}
-<div class="form-group title-input">
-    <label for="name">{{ trans('common.name') }}</label>
-    @include('form.text', ['name' => 'name', 'autofocus' => true])
+
+@if(isset($book) && $book->slug === 'releases-notes')
+    {{-- Campo oculto de título; o valor será preenchido automaticamente no controller --}}
+    <input type="hidden" name="name" value="{{ isset($chapter) ? $chapter->name : '' }}">
+@else
+    <div class="form-group title-input">
+        <label for="name">{{ trans('common.name') }}</label>
+        @include('form.text', ['name' => 'name', 'autofocus' => true])
+    </div>
+@endif
+
+<div class="form-group">
+    {{-- Campo para Data da Atualização, exibido para releases-notes --}}
+    @if(isset($book) && $book->slug === 'releases-notes')
+        <label for="update_date">Data da Atualização</label>
+        <input required type="date" class="form-control" id="update_date" name="update_date"
+               value="{{ old('update_date', isset($chapter) && $chapter->update_date ? \Carbon\Carbon::parse($chapter->update_date)->format('Y-m-d') : '') }}">
+    @endif
 </div>
 
 <div class="form-group description-input">
@@ -13,6 +28,7 @@
     @include('form.description-html-input')
 </div>
 
+{{-- Outros campos do formulário... --}}
 <div class="form-group collapsible" component="collapsible" id="logo-control">
     <button refs="collapsible@trigger" type="button" class="collapse-title text-link" aria-expanded="false">
         <label for="tags">{{ trans('entities.chapter_tags') }}</label>
@@ -32,7 +48,6 @@
 </div>
 
 <div class="form-group text-right">
-    <a href="{{ isset($chapter) ? $chapter->getUrl() : $book->getUrl() }}" class="button outline">{{ trans('common.cancel') }}</a>
     <button type="submit" class="button">{{ trans('entities.chapters_save') }}</button>
 </div>
 

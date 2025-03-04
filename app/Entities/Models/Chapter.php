@@ -21,8 +21,9 @@ class Chapter extends BookChild
 
     public float $searchFactor = 1.2;
 
-    protected $fillable = ['name', 'description', 'priority'];
+    protected $fillable = ['name', 'description', 'priority','update_date',];
     protected $hidden = ['pivot', 'deleted_at', 'description_html'];
+protected $casts = ['update_date' => 'date',];
 
     /**
      * Get the pages that this chapter contains.

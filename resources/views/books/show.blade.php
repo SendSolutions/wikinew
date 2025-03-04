@@ -16,15 +16,55 @@
 @include('entities.body-tag-classes', ['entity' => $book])
 
 @section('body')
-
     <div class="mb-s print-hidden">
-        @include('entities.breadcrumbs', ['crumbs' => [
-            $book,
-        ]])
+        @include('entities.breadcrumbs', ['crumbs' => [$book]])
     </div>
 
+    {{-- Se for "releases-notes", exibe o filtro de navegação --}}
+    @if($book->slug === 'releases-notes')
+        @php
+            \Carbon\Carbon::setLocale('pt_BR');
+            $year = $currentYear ?? \Carbon\Carbon::now()->year;
+            $month = $currentMonth ?? \Carbon\Carbon::now()->month;
+            $currentDate = \Carbon\Carbon::createFromDate($year, $month, 1);
+            $prevDate = $currentDate->copy()->subMonth();
+            $nextDate = $currentDate->copy()->addMonth();
+        @endphp
+
+        @push('head')
+            <style>
+                .circle-button {
+                    display: inline-block;
+                    width: 40px;
+                    height: 40px;
+                    line-height: 40px;
+                    border-radius: 50%;
+                    background-color: #ddd;
+                    text-align: center;
+                    text-decoration: none;
+                    font-size: 20px;
+                    color: #333;
+                    margin: 0 5px;
+                }
+                .circle-button:hover {
+                    background-color: #ccc;
+                }
+                .filter-nav {
+                    text-align: center;
+                    margin-bottom: 15px;
+                }
+            </style>
+        @endpush
+
+        <div class="filter-nav">
+            <a href="{{ $book->getUrl() }}?year={{ $prevDate->year }}&month={{ $prevDate->month }}" class="circle-button" title="Anterior">&lt;</a>
+            <span style="margin: 0 10px; font-weight: bold;">{{ $currentDate->translatedFormat('F Y') }}</span>
+            <a href="{{ $book->getUrl() }}?year={{ $nextDate->year }}&month={{ $nextDate->month }}" class="circle-button" title="Próximo">&gt;</a>
+        </div>
+    @endif
+
     <main class="content-wrap card">
-        <h4 class="break-text">{{$book->name}}</h4>
+        <h4 class="break-text">{{ $book->name }}</h4>
         <div refs="entity-search@contentView" class="book-content">
             <div class="text-muted break-text">{!! $book->descriptionHtml() !!}</div>
             @if(count($bookChildren) > 0)
@@ -41,7 +81,6 @@
                 <div class="mt-xl">
                     <hr>
                     <p class="text-muted italic mb-m mt-xl">{{ trans('entities.books_empty_contents') }}</p>
-
                     <div class="icon-list block inline">
                         @if(userCan('page-create', $book))
                             <a href="{{ $book->getUrl('/create-page') }}" class="icon-list-item text-page">
@@ -56,14 +95,12 @@
                             </a>
                         @endif
                     </div>
-
                 </div>
             @endif
         </div>
 
         @include('entities.search-results')
     </main>
-
 @stop
 
 @section('right')
@@ -92,7 +129,6 @@
     <div class="actions mb-xl">
         <h5>{{ trans('common.actions') }}</h5>
         <div class="icon-list text-link">
-
             @if(userCan('page-create', $book))
                 <a href="{{ $book->getUrl('/create-page') }}" data-shortcut="new" class="icon-list-item">
                     <span>@icon('add')</span>
@@ -150,26 +186,19 @@
             @endif
         </div>
     </div>
-
 @stop
 
 @section('left')
-
     @include('entities.search-form', ['label' => trans('entities.books_search_this')])
-
     @if($book->tags->count() > 0)
         <div class="mb-xl">
             @include('entities.tag-list', ['entity' => $book])
         </div>
     @endif
-
     @if(count($bookParentShelves) > 0)
         <div class="actions mb-xl">
             <h5>{{ trans('entities.shelves') }}</h5>
             @include('entities.list', ['entities' => $bookParentShelves, 'style' => 'compact'])
         </div>
     @endif
-
-  
 @stop
-

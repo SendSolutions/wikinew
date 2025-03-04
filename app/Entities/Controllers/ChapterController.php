@@ -56,19 +56,28 @@ class ChapterController extends Controller
     public function store(Request $request, string $bookSlug)
     {
         $validated = $this->validate($request, [
-            'name'                => ['required', 'string', 'max:255'],
+            'name'                => ['sometimes', 'string', 'max:255'], // não obrigatorio para releases-notes
             'description_html'    => ['string'],
             'tags'                => ['array'],
             'default_template_id' => ['nullable', 'integer'],
+            'update_date'         => ['nullable', 'date'],
         ]);
-
+    
         $book = $this->entityQueries->books->findVisibleBySlugOrFail($bookSlug);
         $this->checkOwnablePermission('chapter-create', $book);
-
+    
+        // Se o livro é de releases-notes, gera o título automaticamente
+        if ($book->slug === 'releases-notes' && !empty($validated['update_date'])) {
+            // Formata a data para dd/mm/aaaa
+            $formattedDate = \Carbon\Carbon::parse($validated['update_date'])->format('d/m/Y');
+            $validated['name'] = "ATUALIZAÇÃO - " . $formattedDate;
+        }
+    
         $chapter = $this->chapterRepo->create($validated, $book);
-
+    
         return redirect($chapter->getUrl());
     }
+    
 
     /**
      * Display the specified chapter.
@@ -124,15 +133,23 @@ class ChapterController extends Controller
             'description_html'    => ['string'],
             'tags'                => ['array'],
             'default_template_id' => ['nullable', 'integer'],
+            'update_date'         => ['nullable', 'date'],
         ]);
-
+    
         $chapter = $this->queries->findVisibleBySlugsOrFail($bookSlug, $chapterSlug);
         $this->checkOwnablePermission('chapter-update', $chapter);
-
+    
+        // Se for o livro "releases-notes", gera o título automaticamente com base na data
+        if ($chapter->book->slug === 'releases-notes' && !empty($validated['update_date'])) {
+            $formattedDate = \Carbon\Carbon::parse($validated['update_date'])->format('d/m/Y');
+            $validated['name'] = "ATUALIZAÇÃO - " . $formattedDate;
+        }
+    
         $this->chapterRepo->update($chapter, $validated);
-
+    
         return redirect($chapter->getUrl());
     }
+    
 
     /**
      * Shows the page to confirm deletion of this chapter.
