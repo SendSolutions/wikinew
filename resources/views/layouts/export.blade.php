@@ -15,8 +15,7 @@
             <!-- Logo à esquerda -->
             <div style="flex: 1; text-align: left;">
                 <!-- Pega do .env via APP_URL -->
-                <img src="https://help.sendsolutions.com.br/uploads/images/gallery/2025-03/send.png"
-
+                <img src="file://{{ public_path('uploads/images/gallery/2025-03/send.png') }}"
                      alt="Logo"
                      style="max-height: 80px;">
             </div>
