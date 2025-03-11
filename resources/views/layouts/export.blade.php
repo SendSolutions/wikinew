@@ -23,7 +23,7 @@
             <!-- Ícone do Instagram centralizado -->
             <div style="flex: 1; text-align: center;">
                 <a href="https://www.instagram.com/send_solutions" target="_blank">
-                    <img src="https://help.sendsolutions.com.br/uploads/images/gallery/2025-03/instagram.png"
+                    <img src="file://{{ public_path('uploads/images/gallery/2025-03/instagram.png') }}"
                          alt="Instagram"
                          style="max-height: 40px;">
                 </a>
