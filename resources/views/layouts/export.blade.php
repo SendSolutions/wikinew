@@ -15,7 +15,7 @@
             <!-- Logo à esquerda -->
             <div style="flex: 1; text-align: left;">
                 <!-- Pega do .env via APP_URL -->
-                <img src="https://help.sendsolutions.com.br/uploads/images/gallery/2025-03/pQyxsuO2MH32TBg9-send.png"
+                <img src="https://help.sendsolutions.com.br/send.png"
 
                      alt="Logo"
                      style="max-height: 80px;">
@@ -24,7 +24,7 @@
             <!-- Ícone do Instagram centralizado -->
             <div style="flex: 1; text-align: center;">
                 <a href="https://www.instagram.com/send_solutions" target="_blank">
-                    <img src="https://help.sendsolutions.com.br/uploads/images/gallery/2025-03/UkwtZygvR6ghquCs-instagram.png"
+                    <img src="https://help.sendsolutions.com.br/instagram.png"
                          alt="Instagram"
                          style="max-height: 40px;">
                 </a>
