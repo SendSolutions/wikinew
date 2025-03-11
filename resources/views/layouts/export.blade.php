@@ -11,30 +11,28 @@
 </head>
 <body class="export export-format-{{ $format }} export-engine-{{ $engine ?? 'none' }}">
     <header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <!-- Logo à esquerda -->
-            <div style="flex: 1; text-align: left;">
-                <!-- Pega do .env via APP_URL -->
+        <div style="
+            display: flex;
+            align-items: center;
+            /* Para evitar quebra de linha caso a largura fique menor */
+            flex-wrap: nowrap;
+            /* Ajuste de espaçamento horizontal entre as imagens, se quiser */
+            gap: 40px;
+        ">
+            <!-- Logo Send (à esquerda) -->
+            <a href="https://sendsolutions.com.br/solucoes/send-educacional/" target="_blank">
                 <img src="file://{{ public_path('uploads/images/gallery/2025-03/send.png') }}"
-                     alt="Logo"
-                     style="max-height: 80px;">
-            </div>
+                     alt="Logo Send"
+                     style="max-height: 50px;">
+            </a>
 
-            <!-- Ícone do Instagram centralizado -->
-            <div style="flex: 1; text-align: center;">
-                <a href="https://www.instagram.com/send_solutions" target="_blank">
-                    <img src="file://{{ public_path('uploads/images/gallery/2025-03/instagram.png') }}"
-                         alt="Instagram"
-                         style="max-height: 40px;">
-                </a>
-            </div>
-
-            <!-- Link do site à direita -->
-            <div style="flex: 1; text-align: right;">
-                <a href="https://sendsolutions.com.br/solucoes/send-educacional/" target="_blank">
-                    sendsolutions.com.br
-                </a>
-            </div>
+            <!-- Ícone Instagram (à direita) -->
+            <a href="https://www.instagram.com/send_solutions" target="_blank">
+                <img src="file://{{ public_path('uploads/images/gallery/2025-03/instagram.png') }}"
+                     alt="Instagram"
+                     style="max-height: 20px;">
+            </a>
+           
         </div>
     </header>
     
