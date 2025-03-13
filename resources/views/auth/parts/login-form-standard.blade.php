@@ -8,7 +8,6 @@
         </div>
 
         <div class="form-group">
-            shelves
             <label for="password">{{ trans('auth.password') }}</label>
             @include('form.password', ['name' => 'password'])
             <div class="small mt-s">
