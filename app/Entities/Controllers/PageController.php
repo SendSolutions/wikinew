@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class PageController extends Controller
@@ -158,17 +159,60 @@ class PageController extends Controller
                 if (!Auth::check()) {
                     return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
                 }
+                
                 $user = Auth::user();
-                // Se o usuário não tiver empresas vinculadas, bloqueia o acesso
-                if ($user->companies->isEmpty()) {
-                    return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                
+                // Verificar se o usuário tem a função "viewer"
+                $isViewer = false;
+                
+                // Para descobrir a estrutura da tabela roles
+                try {
+                    // Primeiro, vamos obter o primeiro registro da tabela roles para ver a estrutura
+                    $firstRole = \Illuminate\Support\Facades\DB::table('roles')->first();
+                    
+                    if ($firstRole) {
+                        // Vamos encontrar o campo que contém "viewer" no nome
+                        $roleFields = array_keys((array)$firstRole);
+                        
+                        // Procurar a função "viewer" com base nos campos disponíveis
+                        foreach ($roleFields as $field) {
+                            if (strpos($field, 'name') !== false) {
+                                $viewerRole = \Illuminate\Support\Facades\DB::table('roles')
+                                    ->where($field, 'like', '%viewer%')
+                                    ->first();
+                                    
+                                if ($viewerRole) {
+                                    // Verificar se o usuário tem esta função
+                                    $isViewer = \Illuminate\Support\Facades\DB::table('role_user')
+                                        ->where('user_id', $user->id)
+                                        ->where('role_id', $viewerRole->id)
+                                        ->exists();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Se ocorrer algum erro, assumimos que o usuário não é viewer
+                    $isViewer = false;
                 }
-                // Verifica se há interseção entre as empresas do usuário e as da página
-                $userCompanyIds = $user->companies->pluck('id')->toArray();
-                $pageCompanyIds = $pageCompanies->pluck('id')->toArray();
-                if (empty(array_intersect($userCompanyIds, $pageCompanyIds))) {
-                    return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                
+                // Aplicar restrição por empresa apenas para usuários com função "viewer"
+                if ($isViewer) {
+                    // Se o usuário não tiver empresas vinculadas, bloqueia o acesso
+                    if ($user->companies->isEmpty()) {
+                        return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                    }
+                    
+                    // Verifica se há interseção entre as empresas do usuário e as da página
+                    $userCompanyIds = $user->companies->pluck('id')->toArray();
+                    $pageCompanyIds = $pageCompanies->pluck('id')->toArray();
+                    
+                    if (empty(array_intersect($userCompanyIds, $pageCompanyIds))) {
+                        return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                    }
                 }
+                // Usuários que não são "viewer" não estão sujeitos à restrição por empresa
             }
         }
     
@@ -199,7 +243,6 @@ class PageController extends Controller
             'referenceCount'  => $this->referenceFetcher->getReferenceCountToEntity($page),
         ]);
     }
-    
     
     /**
      * Get page from an ajax request.
