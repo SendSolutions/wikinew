@@ -134,83 +134,72 @@ class PageController extends Controller
     }
 
     public function show(string $bookSlug, string $pageSlug)
-{
-    try {
-        $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
-    } catch (NotFoundException $e) {
-        $revision = $this->entityQueries->revisions->findLatestVersionBySlugs($bookSlug, $pageSlug);
-        $page = $revision->page ?? null;
-
-        if (is_null($page)) {
-            throw $e;
-        }
-
-        return redirect($page->getUrl());
-    }
-
-    // Verificação de permissão por empresa ANTES da verificação padrão do sistema
-    if (Auth::check() && method_exists($page, 'companies')) {
-        $user = Auth::user();
-        $pageCompanies = $page->companies;
-        
-        // Se a página tem restrições de empresa
-        if ($pageCompanies->isNotEmpty()) {
-            // Verificar se o usuário é do tipo viewer
-            // Como vimos que role pode ser null, usamos uma abordagem mais robusta
-            $isViewer = false;
-            
-            // Verificação robusta para usuários viewer
-            if ($user->role === 'viewer' || $user->role === 'visualizador') {
-                $isViewer = true;
-            } else if ($user->role === null) {
-                // Para usuários com role null, podemos implementar uma lista de IDs ou verificar o nome
-                // Esta é uma solução temporária até que todos os usuários tenham roles definidos
-                $viewerNames = ['breton']; // nomes de usuários que são considerados viewers
-                $isViewer = in_array(strtolower($user->name), $viewerNames);
+    {
+        try {
+            $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
+        } catch (NotFoundException $e) {
+            $revision = $this->entityQueries->revisions->findLatestVersionBySlugs($bookSlug, $pageSlug);
+            $page = $revision->page ?? null;
+    
+            if (is_null($page)) {
+                throw $e;
             }
-            
-            // Se for um viewer, verificamos as empresas
-            if ($isViewer) {
-                $userCompanies = $user->companies;
-                $userCompanyIds = $userCompanies->pluck('id')->toArray();
+    
+            return redirect($page->getUrl());
+        }
+    
+        // Verificação de acesso por empresa:
+        // Se o método 'companies' existe e a página tem empresas associadas,
+        // então o usuário precisa estar logado e vinculado a uma das empresas.
+        if (method_exists($page, 'companies')) {
+            $pageCompanies = $page->companies;
+            if ($pageCompanies->isNotEmpty()) {
+                // Se o usuário não estiver logado, bloqueia o acesso
+                if (!Auth::check()) {
+                    return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                }
+                $user = Auth::user();
+                // Se o usuário não tiver empresas vinculadas, bloqueia o acesso
+                if ($user->companies->isEmpty()) {
+                    return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                }
+                // Verifica se há interseção entre as empresas do usuário e as da página
+                $userCompanyIds = $user->companies->pluck('id')->toArray();
                 $pageCompanyIds = $pageCompanies->pluck('id')->toArray();
-                
-                // Se não houver interseção entre as empresas, nega o acesso
                 if (empty(array_intersect($userCompanyIds, $pageCompanyIds))) {
-                    $this->showErrorNotification('Você não tem permissão para acessar esta página.');
-                    return redirect('/');
+                    return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
                 }
             }
         }
-    }
-
-    // Verificação padrão do sistema
-    $this->checkOwnablePermission('page-view', $page);
     
-    $pageContent = new PageContent($page);
-    $page->html = $pageContent->render();
-    $pageNav = $pageContent->getNavigation($page->html);
-
-    $sidebarTree = (new BookContents($page->book))->getTree();
-    $commentTree = new CommentTree($page);
-    $nextPreviousLocator = new NextPreviousContentLocator($page, $sidebarTree);
-
-    View::incrementFor($page);
-    $this->setPageTitle($page->getShortName());
-
-    return view('pages.show', [
-        'page'            => $page,
-        'book'            => $page->book,
-        'current'         => $page,
-        'sidebarTree'     => $sidebarTree,
-        'commentTree'     => $commentTree,
-        'pageNav'         => $pageNav,
-        'watchOptions'    => new UserEntityWatchOptions(user(), $page),
-        'next'            => $nextPreviousLocator->getNext(),
-        'previous'        => $nextPreviousLocator->getPrevious(),
-        'referenceCount'  => $this->referenceFetcher->getReferenceCountToEntity($page),
-    ]);
-}
+        // Verificação padrão do sistema
+        $this->checkOwnablePermission('page-view', $page);
+    
+        $pageContent = new PageContent($page);
+        $page->html = $pageContent->render();
+        $pageNav = $pageContent->getNavigation($page->html);
+    
+        $sidebarTree = (new BookContents($page->book))->getTree();
+        $commentTree = new CommentTree($page);
+        $nextPreviousLocator = new NextPreviousContentLocator($page, $sidebarTree);
+    
+        View::incrementFor($page);
+        $this->setPageTitle($page->getShortName());
+    
+        return view('pages.show', [
+            'page'            => $page,
+            'book'            => $page->book,
+            'current'         => $page,
+            'sidebarTree'     => $sidebarTree,
+            'commentTree'     => $commentTree,
+            'pageNav'         => $pageNav,
+            'watchOptions'    => new UserEntityWatchOptions(user(), $page),
+            'next'            => $nextPreviousLocator->getNext(),
+            'previous'        => $nextPreviousLocator->getPrevious(),
+            'referenceCount'  => $this->referenceFetcher->getReferenceCountToEntity($page),
+        ]);
+    }
+    
     
     /**
      * Get page from an ajax request.
