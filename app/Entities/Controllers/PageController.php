@@ -286,36 +286,12 @@ class PageController extends Controller
         $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
         $this->checkOwnablePermission('page-update', $page);
         
-        // APENAS verifica se o HTML mudou, ignorando todas as outras alterações
-        $oldHtml = trim($page->html);
-        $newHtml = trim($request->input('html', $page->html));
-        $summary = trim($request->input('summary', ''));
-        
-        // Verifica se o HTML está significativamente diferente
-        // Comparação simples, mas tolerante a pequenas alterações de formatação
-        $htmlDifferent = (abs(strlen($oldHtml) - strlen($newHtml)) > 200);
-        
-        // Log para diagnóstico (opcional)
-        \Illuminate\Support\Facades\Log::info('Verificação de HTML', [
-            'html_different' => $htmlDifferent ? 'sim' : 'não',
-            'old_length' => strlen($oldHtml),
-            'new_length' => strlen($newHtml),
-            'diff_length' => abs(strlen($oldHtml) - strlen($newHtml))
-        ]);
-        
-        // Exige changelog APENAS se o HTML mudou significativamente
-        if ($htmlDifferent && strlen($summary) < 5) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Você precisa informar o que está sendo alterado para salvar as alterações.');
-        }
-    
-        // Valida os demais campos
+        // Valida os campos necessários
         $this->validate($request, [
             'name' => ['required', 'string', 'max:255'],
         ]);
     
-        // Atualiza a página com os dados enviados
+        // Atualiza a página com os dados enviados, sem verificação de changelog
         $this->pageRepo->update($page, $request->all());
     
         // Sincroniza as empresas associadas à página, se houver
