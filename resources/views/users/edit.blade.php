@@ -13,6 +13,23 @@
 
                 <div class="setting-list">
                     @include('users.parts.form', ['model' => $user, 'authMethod' => $authMethod])
+                    <!-- Campo para seleção de Empresas -->
+                    <div class="form-group">
+                        <label for="companies">Empresas</label>
+                        <select name="companies[]" id="companies" class="form-control" multiple>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}"
+                                    @if(isset($user) && $user->companies->contains($company->id))
+                                        selected
+                                    @endif>
+                                    {{ $company->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">
+                            Se nenhuma empresa for selecionada, o usuário terá acesso a todos os documentos.
+                        </small>
+                    </div>
 
                     <div class="grid half gap-xl">
                         <div>

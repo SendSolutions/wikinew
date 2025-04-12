@@ -33,7 +33,6 @@ class Bookshelf extends Entity implements HasCoverImage
             ->withPivot('order')
             ->orderBy('order', 'asc');
     }
-
     /**
      * Related books that are visible to the current user.
      */

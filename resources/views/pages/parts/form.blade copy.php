@@ -17,6 +17,7 @@
      option:page-editor:draft-delete-fail-text="{{ trans('errors.page_draft_delete_fail') }}"
      option:page-editor:set-changelog-text="{{ trans('entities.pages_edit_set_changelog') }}">
 
+     
     {{-- Header Toolbar --}}
     @include('pages.parts.editor-toolbar', [
          'model'       => $model,
@@ -103,25 +104,39 @@
                         <p class="small">Selecione as empresas que têm permissão para acessar esta página. Se nenhuma for selecionada, a página estará visível para todos.</p>
                         
                         @php
-                            // Buscar empresas diretamente
-                            $companiesList = \BookStack\Entities\Company::all();
-                            // Garantir que $page->companies existe para evitar erros
-                            $pageCompanies = isset($page) && method_exists($page, 'companies') ? $page->companies->pluck('id')->toArray() : [];
+                            // Buscar apenas empresas ativas
+                            $companiesList = \BookStack\Entities\Company::where('active', true)->orderBy('name')->get();
+                            
+                            // Definir a entidade atual corretamente
+                            $currentEntity = isset($page) ? $page : $model;
+                            
+                            // Obter as empresas vinculadas à página atual (se existir)
+                            $pageCompanies = [];
+                            if ($currentEntity && method_exists($currentEntity, 'companies')) {
+                                $pageCompanies = $currentEntity->companies->pluck('id')->toArray();
+                            }
                         @endphp
                         
-                        <div class="form-group">
-                            <div class="grid half">
-                                @foreach($companiesList as $company)
-                                    <div class="setting-list-item">
-                                        <label class="setting-list-item-label">
-                                            <input type="checkbox" name="company_permissions[]" value="{{ $company->id }}" 
-                                                {{ in_array($company->id, old('company_permissions', $pageCompanies)) ? 'checked' : '' }}>
-                                            <span>{{ $company->name }}</span>
-                                        </label>
-                                    </div>
-                                @endforeach
+                        @if(count($companiesList) > 0)
+                            <div class="form-group">
+                                <div class="grid half">
+                                    @foreach($companiesList as $company)
+                                        <div class="setting-list-item">
+                                            <label class="setting-list-item-label">
+                                                <input type="checkbox" name="company_permissions[]" value="{{ $company->id }}" 
+                                                    {{ in_array($company->id, old('company_permissions', $pageCompanies)) ? 'checked' : '' }}>
+                                                <span>{{ $company->name }}</span>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="setting-list-item">
+                                <p class="text-warn">Não há empresas ativas disponíveis.</p>
+                                <p class="text-muted small">Para definir permissões específicas, primeiro ative ou <a href="{{ url('/settings/companies/create') }}" target="_blank">crie uma empresa</a>.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @if($comments->enabled())
@@ -129,7 +144,7 @@
                 @endif
             </div>
         </div>
-    </div>
+    </div>a
 
     {{-- Mobile Save Button --}}
     <button type="submit"

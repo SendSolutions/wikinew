@@ -21,6 +21,32 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+// Remova esta definição duplicada e conflitante
+// Route::group(['middleware' => ['auth']], function () {
+//     Route::resource('settings/companies', 'BookStack\Entities\Controllers\CompanyController');
+// });
+
+Route::group(['prefix' => 'settings', 'middleware' => ['auth', 'can:users-manage']], function () {
+    // Rotas resource padrão, exceto show e destroy
+    Route::get('/companies', [\BookStack\Entities\Controllers\CompanyController::class, 'index'])
+        ->name('companies.index');
+    Route::get('/companies/create', [\BookStack\Entities\Controllers\CompanyController::class, 'create'])
+        ->name('companies.create');
+    Route::post('/companies', [\BookStack\Entities\Controllers\CompanyController::class, 'store'])
+        ->name('companies.store');
+    Route::get('/companies/{id}', [\BookStack\Entities\Controllers\CompanyController::class, 'edit'])
+        ->name('companies.edit');
+    Route::put('/companies/{id}', [\BookStack\Entities\Controllers\CompanyController::class, 'update'])
+        ->name('companies.update');
+    
+    // Rotas para desativação/reativação em vez de exclusão
+    Route::get('/companies/{id}/deactivate', [\BookStack\Entities\Controllers\CompanyController::class, 'showDeactivate'])
+        ->name('companies.deactivate.confirm');
+    Route::put('/companies/{id}/deactivate', [\BookStack\Entities\Controllers\CompanyController::class, 'deactivate'])
+        ->name('companies.deactivate');
+    Route::put('/companies/{id}/activate', [\BookStack\Entities\Controllers\CompanyController::class, 'activate'])
+        ->name('companies.activate');
+});
 // Status & Meta routes
 Route::get('/status', [SettingControllers\StatusController::class, 'show']);
 Route::get('/robots.txt', [MetaController::class, 'robots']);

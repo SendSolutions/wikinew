@@ -10,29 +10,37 @@
     @include('exports.parts.custom-head')
 </head>
 <body class="export export-format-{{ $format }} export-engine-{{ $engine ?? 'none' }}">
+
+    @php
+        // Obtém o link configurado no .env ou no arquivo de configuração
+        $appLink = config('bookstack.app_link');
+        // Caso o link contenha 'wiki.sendsolucions.com.br', usamos "senderp.png".
+        // Do contrário, usamos "send.png".
+        $logoFilename = (strpos($appLink, 'wiki.sendsolucions.com.br') !== false) ? 'senderp.png' : 'send.png';
+        // O caminho da pasta permanece fixo; apenas o nome final varia.
+        $logoPath = 'uploads/images/gallery/2025-03/' . $logoFilename;
+    @endphp
+
     <header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
         <div style="
             display: flex;
             align-items: center;
-            /* Para evitar quebra de linha caso a largura fique menor */
             flex-wrap: nowrap;
-            /* Ajuste de espaçamento horizontal entre as imagens, se quiser */
             gap: 40px;
         ">
-            <!-- Logo Send (à esquerda) -->
+            <!-- Exibe a logo, alterando somente o nome do arquivo conforme a variável -->
             <a href="https://sendsolutions.com.br/solucoes/send-educacional/" target="_blank">
-                <img src="file://{{ public_path('uploads/images/gallery/2025-03/send.png') }}"
-                     alt="Logo Send"
+                <img src="file://{{ public_path($logoPath) }}"
+                     alt="Logo da Aplicação"
                      style="max-height: 50px;">
             </a>
 
-            <!-- Ícone Instagram (à direita) -->
+            <!-- Ícone do Instagram (fixo) -->
             <a href="https://www.instagram.com/send_solutions" target="_blank">
                 <img src="file://{{ public_path('uploads/images/gallery/2025-03/instagram.png') }}"
                      alt="Instagram"
                      style="max-height: 20px;">
             </a>
-           
         </div>
     </header>
     
@@ -41,5 +49,17 @@
         @yield('content')
     </div>
     @include('layouts.parts.export-body-end')
+    
+    <!-- Rodapé com dados complementares -->
+    <footer style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; font-size: 0.8em;">
+        <p>
+            Copyright 2025 -
+            Send Solutions Ltda -
+            CNPJ 67.843.169/0001-84 -
+            <a href="https://aplicacao.sendsolutions.com.br/TimeSheet/" target="_blank">Abertura de chamados</a> -
+            <a href="https://www.instagram.com/send_solutions" target="_blank">Instagram</a>
+        </p>
+    </footer>
+    
 </body>
 </html>

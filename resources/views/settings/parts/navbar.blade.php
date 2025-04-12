@@ -1,4 +1,3 @@
-
 <nav class="active-link-list py-m flex-container-row justify-center wrap">
     @if(userCan('settings-manage'))
         <a href="{{ url('/settings') }}" @if($selected == 'settings') class="active" @endif>@icon('settings'){{ trans('settings.settings') }}</a>
@@ -9,6 +8,7 @@
     @endif
     @if(userCan('users-manage'))
         <a href="{{ url('/settings/users') }}" @if($selected == 'users') class="active" @endif>@icon('users'){{ trans('settings.users') }}</a>
+        <a href="{{ url('/settings/companies') }}" @if($selected == 'companies') class="active" @endif>@icon('building')Empresas</a>
     @endif
     @if(userCan('user-roles-manage'))
         <a href="{{ url('/settings/roles') }}" @if($selected == 'roles') class="active" @endif>@icon('lock-open'){{ trans('settings.roles') }}</a>

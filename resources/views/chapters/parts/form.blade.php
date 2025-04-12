@@ -23,9 +23,23 @@
     @endif
 </div>
 
+@php
+    // Verifica se o host do site é wiki.sendsolutions.com.br para definir o valor padrão do campo descrição.
+    $currentHost = request()->getHost();
+    $defaultDescription = ($currentHost === 'wiki.sendsolutions.com.br')
+        ? '<ul>
+                <li>Neste documento serão disponibilizadas as atualizações referentes de todos os módulos.</li>
+                <li>Será disponibilizado por versões conforme a liberação enviada por e-mail para a área responsável.</li>
+                <li>Listaremos sempre a versão prévia, isto é, a previsão do que irá ser a próxima atualização.</li>
+                <li>Após ser liberada a atualização será possível localizar pelo ano, mês e data de disponibilização.</li>
+           </ul>'
+        : '';
+@endphp
+
 <div class="form-group description-input">
     <label for="description_html">{{ trans('common.description') }}</label>
-    @include('form.description-html-input')
+    {{-- Utiliza o helper old() com o valor padrão definido condicionalmente --}}
+    <textarea name="description_html" id="description_html" rows="8" class="form-control">{{ old('description_html', $defaultDescription) }}</textarea>
 </div>
 
 {{-- Outros campos do formulário... --}}

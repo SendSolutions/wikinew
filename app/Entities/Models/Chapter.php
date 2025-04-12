@@ -58,7 +58,7 @@ protected $casts = ['update_date' => 'date',];
     {
         return $this->belongsTo(Page::class, 'default_template_id');
     }
-
+ 
     /**
      * Get the visible pages in this chapter.
      * @returns Collection<Page>

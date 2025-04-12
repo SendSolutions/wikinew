@@ -113,7 +113,16 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return !$this->isGuest() || setting('app-public');
     }
-
+    public function companies()
+    {
+        return $this->belongsToMany(\BookStack\Entities\Company::class, 'user_company')
+            ->select('companies.id', 'companies.name', 'companies.description');
+    }
+    // Adicione este método para verificar se o usuário pertence a uma empresa específica
+    public function belongsToCompany($companyId)
+    {
+        return $this->companies()->where('company_id', $companyId)->exists();
+    }
     /**
      * The roles that belong to the user.
      *

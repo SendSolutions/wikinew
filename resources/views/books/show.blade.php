@@ -20,48 +20,48 @@
         @include('entities.breadcrumbs', ['crumbs' => [$book]])
     </div>
 
-    {{-- Se for "releases-notes", exibe o filtro de navegação --}}
     @if($book->slug === 'releases-notes')
-        @php
-            \Carbon\Carbon::setLocale('pt_BR');
-            $year = $currentYear ?? \Carbon\Carbon::now()->year;
-            $month = $currentMonth ?? \Carbon\Carbon::now()->month;
-            $currentDate = \Carbon\Carbon::createFromDate($year, $month, 1);
-            $prevDate = $currentDate->copy()->subMonth();
-            $nextDate = $currentDate->copy()->addMonth();
-        @endphp
+    @php
+        \Carbon\Carbon::setLocale('pt_BR');
+        $year = $currentYear ?? \Carbon\Carbon::now()->year;
+        $month = $currentMonth ?? \Carbon\Carbon::now()->month;
+        $currentDate = \Carbon\Carbon::createFromDate($year, $month, 1);
+        $prevDate = $currentDate->copy()->subMonth();
+        $nextDate = $currentDate->copy()->addMonth();
+    @endphp
 
-        @push('head')
-            <style>
-                .circle-button {
-                    display: inline-block;
-                    width: 40px;
-                    height: 40px;
-                    line-height: 40px;
-                    border-radius: 50%;
-                    background-color: #ddd;
-                    text-align: center;
-                    text-decoration: none;
-                    font-size: 20px;
-                    color: #333;
-                    margin: 0 5px;
-                }
-                .circle-button:hover {
-                    background-color: #ccc;
-                }
-                .filter-nav {
-                    text-align: center;
-                    margin-bottom: 15px;
-                }
-            </style>
-        @endpush
+    @push('head')
+        <style>
+            .circle-button {
+                display: inline-block;
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                border-radius: 50%;
+                background-color: #ddd;
+                text-align: center;
+                text-decoration: none;
+                font-size: 20px;
+                color: #333;
+                margin: 0 5px;
+            }
+            .circle-button:hover {
+                background-color: #ccc;
+            }
+            .filter-nav {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+        </style>
+    @endpush
 
-        <div class="filter-nav">
-            <a href="{{ $book->getUrl() }}?year={{ $prevDate->year }}&month={{ $prevDate->month }}" class="circle-button" title="Anterior">&lt;</a>
-            <span style="margin: 0 10px; font-weight: bold;">{{ $currentDate->translatedFormat('F Y') }}</span>
-            <a href="{{ $book->getUrl() }}?year={{ $nextDate->year }}&month={{ $nextDate->month }}" class="circle-button" title="Próximo">&gt;</a>
-        </div>
-    @endif
+    <div class="filter-nav">
+        <a href="{{ $book->getUrl() }}?year={{ $prevDate->year }}&month={{ $prevDate->month }}" class="circle-button" title="Anterior">&lt;</a>
+        <span style="margin: 0 10px; font-weight: bold;">{{ mb_strtoupper($currentDate->translatedFormat('F Y'), 'UTF-8') }}</span>
+        <a href="{{ $book->getUrl() }}?year={{ $nextDate->year }}&month={{ $nextDate->month }}" class="circle-button" title="Próximo">&gt;</a>
+    </div>
+@endif
+
 
     <main class="content-wrap card">
         <h4 class="break-text">{{ $book->name }}</h4>
@@ -130,19 +130,28 @@
     <div class="actions mb-xl">
         <h5>{{ trans('common.actions') }}</h5>
         <div class="icon-list text-link">
-            {{-- Exibe o link de criar página somente se o livro não for releases-notes --}}
+          {{-- Exibe o link de criar página somente se o livro não for releases-notes --}}
             @if(userCan('page-create', $book) && $book->slug !== 'releases-notes')
-                <a href="{{ $book->getUrl('/create-page') }}" data-shortcut="new" class="icon-list-item">
-                    <span>@icon('add')</span>
-                    <span>{{ trans('entities.pages_new') }}</span>
-                </a>
+            <a href="{{ $book->getUrl('/create-page') }}" data-shortcut="new" class="icon-list-item">
+                <span>@icon('add')</span>
+                <span>{{ trans('entities.pages_new') }}</span>
+            </a>
             @endif
+
+            {{-- Exibe o link para criar capítulo ou release, dependendo do slug do livro --}}
             @if(userCan('chapter-create', $book))
-                <a href="{{ $book->getUrl('/create-chapter') }}" data-shortcut="new" class="icon-list-item">
-                    <span>@icon('add')</span>
-                    <span>{{ trans('entities.chapters_new') }}</span>
-                </a>
+            <a href="{{ $book->getUrl('/create-chapter') }}" data-shortcut="new" class="icon-list-item">
+                <span>@icon('add')</span>
+                <span>
+                    @if($book->slug === 'releases-notes')
+                        Nova release
+                    @else
+                      Novo Capitulo
+                    @endif
+                </span>
+            </a>
             @endif
+
 
             <hr class="primary-background">
 

@@ -5,12 +5,6 @@
     <h5>{{ trans('entities.books_navigation') }}</h5>
 
     <ul class="sidebar-page-list mt-xs menu entity-list">
-        @if (userCan('view', $book))
-            <li class="list-item-book book">
-                @include('entities.list-item-basic', ['entity' => $book, 'classes' => ($current->matches($book)? 'selected' : '')])
-            </li>
-        @endif
-
         @foreach($sidebarTree as $bookChild)
             <li class="list-item-{{ $bookChild->getType() }} {{ $bookChild->getType() }} {{ $bookChild->isA('page') && $bookChild->draft ? 'draft' : '' }}">
                 @include('entities.list-item-basic', ['entity' => $bookChild, 'classes' => $current->matches($bookChild)? 'selected' : ''])
@@ -31,5 +25,12 @@
 
             </li>
         @endforeach
+        @if (userCan('view', $book))
+            <li class="list-item-book book">
+                @include('entities.list-item-basic', ['entity' => $book, 'classes' => ($current->matches($book)? 'selected' : '')])
+            </li>
+        @endif
+
+        
     </ul>
 </nav>

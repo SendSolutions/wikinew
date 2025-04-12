@@ -60,7 +60,8 @@ class Book extends Entity implements HasCoverImage
             return $default;
         }
     }
-
+   
+    
     /**
      * Get the cover image of the book.
      */

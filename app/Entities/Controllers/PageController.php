@@ -7,6 +7,7 @@ use BookStack\Activity\Tools\CommentTree;
 use BookStack\Activity\Tools\UserEntityWatchOptions;
 use BookStack\Entities\Models\Book;
 use BookStack\Entities\Models\Chapter;
+use BookStack\Entities\Company; // <--- Adicionado para trabalhar com empresas
 use BookStack\Entities\Queries\EntityQueries;
 use BookStack\Entities\Queries\PageQueries;
 use BookStack\Entities\Repos\PageRepo;
@@ -24,6 +25,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 use Throwable;
 
 class PageController extends Controller
@@ -54,13 +56,11 @@ class PageController extends Controller
         // Redirect to draft edit screen if signed in
         if ($this->isSignedIn()) {
             $draft = $this->pageRepo->getNewDraftPage($parent);
-
             return redirect($draft->getUrl());
         }
 
         // Otherwise show the edit view if they're a guest
         $this->setPageTitle(trans('entities.pages_new'));
-
         return view('pages.guest-create', ['parent' => $parent]);
     }
 
@@ -104,7 +104,10 @@ class PageController extends Controller
         $editorData = new PageEditorData($draft, $this->entityQueries, $request->query('editor', ''));
         $this->setPageTitle(trans('entities.pages_edit_draft'));
 
-        return view('pages.edit', $editorData->getViewData());
+        // Busca apenas empresas ativas para exibição (pode ajustar conforme necessário)
+        $companies = Company::where('active', true)->orderBy('name')->get();
+
+        return view('pages.edit', array_merge($editorData->getViewData(), ['companies' => $companies]));
     }
 
     /**
@@ -118,62 +121,97 @@ class PageController extends Controller
         $this->validate($request, [
             'name' => ['required', 'string', 'max:255'],
         ]);
+
         $draftPage = $this->queries->findVisibleByIdOrFail($pageId);
         $this->checkOwnablePermission('page-create', $draftPage->getParent());
 
         $page = $this->pageRepo->publishDraft($draftPage, $request->all());
 
+        // Sincroniza as empresas associadas à página (usando um input, por exemplo, 'company_permissions')
+        $page->companies()->sync($request->input('company_permissions', []));
+
         return redirect($page->getUrl());
     }
 
-    /**
-     * Display the specified page.
-     * If the page is not found via the slug the revisions are searched for a match.
-     *
-     * @throws NotFoundException
-     */
     public function show(string $bookSlug, string $pageSlug)
-    {
-        try {
-            $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
-        } catch (NotFoundException $e) {
-            $revision = $this->entityQueries->revisions->findLatestVersionBySlugs($bookSlug, $pageSlug);
-            $page = $revision->page ?? null;
+{
+    try {
+        $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
+    } catch (NotFoundException $e) {
+        $revision = $this->entityQueries->revisions->findLatestVersionBySlugs($bookSlug, $pageSlug);
+        $page = $revision->page ?? null;
 
-            if (is_null($page)) {
-                throw $e;
-            }
-
-            return redirect($page->getUrl());
+        if (is_null($page)) {
+            throw $e;
         }
 
-        $this->checkOwnablePermission('page-view', $page);
-
-        $pageContent = (new PageContent($page));
-        $page->html = $pageContent->render();
-        $pageNav = $pageContent->getNavigation($page->html);
-
-        $sidebarTree = (new BookContents($page->book))->getTree();
-        $commentTree = (new CommentTree($page));
-        $nextPreviousLocator = new NextPreviousContentLocator($page, $sidebarTree);
-
-        View::incrementFor($page);
-        $this->setPageTitle($page->getShortName());
-
-        return view('pages.show', [
-            'page'            => $page,
-            'book'            => $page->book,
-            'current'         => $page,
-            'sidebarTree'     => $sidebarTree,
-            'commentTree'     => $commentTree,
-            'pageNav'         => $pageNav,
-            'watchOptions'    => new UserEntityWatchOptions(user(), $page),
-            'next'            => $nextPreviousLocator->getNext(),
-            'previous'        => $nextPreviousLocator->getPrevious(),
-            'referenceCount'  => $this->referenceFetcher->getReferenceCountToEntity($page),
-        ]);
+        return redirect($page->getUrl());
     }
 
+    // Verificação de permissão por empresa ANTES da verificação padrão do sistema
+    if (Auth::check() && method_exists($page, 'companies')) {
+        $user = Auth::user();
+        $pageCompanies = $page->companies;
+        
+        // Se a página tem restrições de empresa
+        if ($pageCompanies->isNotEmpty()) {
+            // Verificar se o usuário é do tipo viewer
+            // Como vimos que role pode ser null, usamos uma abordagem mais robusta
+            $isViewer = false;
+            
+            // Verificação robusta para usuários viewer
+            if ($user->role === 'viewer' || $user->role === 'visualizador') {
+                $isViewer = true;
+            } else if ($user->role === null) {
+                // Para usuários com role null, podemos implementar uma lista de IDs ou verificar o nome
+                // Esta é uma solução temporária até que todos os usuários tenham roles definidos
+                $viewerNames = ['breton']; // nomes de usuários que são considerados viewers
+                $isViewer = in_array(strtolower($user->name), $viewerNames);
+            }
+            
+            // Se for um viewer, verificamos as empresas
+            if ($isViewer) {
+                $userCompanies = $user->companies;
+                $userCompanyIds = $userCompanies->pluck('id')->toArray();
+                $pageCompanyIds = $pageCompanies->pluck('id')->toArray();
+                
+                // Se não houver interseção entre as empresas, nega o acesso
+                if (empty(array_intersect($userCompanyIds, $pageCompanyIds))) {
+                    $this->showErrorNotification('Você não tem permissão para acessar esta página.');
+                    return redirect('/');
+                }
+            }
+        }
+    }
+
+    // Verificação padrão do sistema
+    $this->checkOwnablePermission('page-view', $page);
+    
+    $pageContent = new PageContent($page);
+    $page->html = $pageContent->render();
+    $pageNav = $pageContent->getNavigation($page->html);
+
+    $sidebarTree = (new BookContents($page->book))->getTree();
+    $commentTree = new CommentTree($page);
+    $nextPreviousLocator = new NextPreviousContentLocator($page, $sidebarTree);
+
+    View::incrementFor($page);
+    $this->setPageTitle($page->getShortName());
+
+    return view('pages.show', [
+        'page'            => $page,
+        'book'            => $page->book,
+        'current'         => $page,
+        'sidebarTree'     => $sidebarTree,
+        'commentTree'     => $commentTree,
+        'pageNav'         => $pageNav,
+        'watchOptions'    => new UserEntityWatchOptions(user(), $page),
+        'next'            => $nextPreviousLocator->getNext(),
+        'previous'        => $nextPreviousLocator->getPrevious(),
+        'referenceCount'  => $this->referenceFetcher->getReferenceCountToEntity($page),
+    ]);
+}
+    
     /**
      * Get page from an ajax request.
      *
@@ -205,27 +243,57 @@ class PageController extends Controller
 
         $this->setPageTitle(trans('entities.pages_editing_named', ['pageName' => $page->getShortName()]));
 
-        return view('pages.edit', $editorData->getViewData());
-    }
+        // Busca as empresas ativas (ou todas, se preferir) para exibição
+        $companies = Company::where('active', true)->orderBy('name')->get();
 
-    /**
-     * Update the specified page in storage.
-     *
-     * @throws ValidationException
-     * @throws NotFoundException
-     */
+        return view('pages.edit', array_merge($editorData->getViewData(), ['companies' => $companies]));
+    }
     public function update(Request $request, string $bookSlug, string $pageSlug)
     {
+        // Carrega a página atual
+        $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
+        $this->checkOwnablePermission('page-update', $page);
+        
+        // APENAS verifica se o HTML mudou, ignorando todas as outras alterações
+        $oldHtml = trim($page->html);
+        $newHtml = trim($request->input('html', $page->html));
+        $summary = trim($request->input('summary', ''));
+        
+        // Verifica se o HTML está significativamente diferente
+        // Comparação simples, mas tolerante a pequenas alterações de formatação
+        $htmlDifferent = (abs(strlen($oldHtml) - strlen($newHtml)) > 200);
+        
+        // Log para diagnóstico (opcional)
+        \Illuminate\Support\Facades\Log::info('Verificação de HTML', [
+            'html_different' => $htmlDifferent ? 'sim' : 'não',
+            'old_length' => strlen($oldHtml),
+            'new_length' => strlen($newHtml),
+            'diff_length' => abs(strlen($oldHtml) - strlen($newHtml))
+        ]);
+        
+        // Exige changelog APENAS se o HTML mudou significativamente
+        if ($htmlDifferent && strlen($summary) < 5) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Você precisa informar o que está sendo alterado para salvar as alterações.');
+        }
+    
+        // Valida os demais campos
         $this->validate($request, [
             'name' => ['required', 'string', 'max:255'],
         ]);
-        $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
-        $this->checkOwnablePermission('page-update', $page);
-
+    
+        // Atualiza a página com os dados enviados
         $this->pageRepo->update($page, $request->all());
-
+    
+        // Sincroniza as empresas associadas à página, se houver
+        if (method_exists($page, 'companies')) {
+            $page->companies()->sync($request->input('company_permissions', []));
+        }
+    
         return redirect($page->getUrl());
     }
+
 
     /**
      * Save a draft update as a revision.
@@ -260,7 +328,6 @@ class PageController extends Controller
     public function redirectFromLink(int $pageId)
     {
         $page = $this->queries->findVisibleByIdOrFail($pageId);
-
         return redirect($page->getUrl());
     }
 
@@ -306,47 +373,6 @@ class PageController extends Controller
             'current' => $page,
             'usedAsTemplate' => $usedAsTemplate,
         ]);
-    }
-
-    /**
-     * Remove the specified page from storage.
-     *
-     * @throws NotFoundException
-     * @throws Throwable
-     */
-    public function destroy(string $bookSlug, string $pageSlug)
-    {
-        $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
-        $this->checkOwnablePermission('page-delete', $page);
-        $parent = $page->getParent();
-
-        $this->pageRepo->destroy($page);
-
-        return redirect($parent->getUrl());
-    }
-
-    /**
-     * Remove the specified draft page from storage.
-     *
-     * @throws NotFoundException
-     * @throws Throwable
-     */
-    public function destroyDraft(string $bookSlug, int $pageId)
-    {
-        $page = $this->queries->findVisibleByIdOrFail($pageId);
-        $book = $page->book;
-        $chapter = $page->chapter;
-        $this->checkOwnablePermission('page-update', $page);
-
-        $this->pageRepo->destroy($page);
-
-        $this->showSuccessNotification(trans('entities.pages_delete_draft_success'));
-
-        if ($chapter && userCan('view', $chapter)) {
-            return redirect($chapter->getUrl());
-        }
-
-        return redirect($book->getUrl());
     }
 
     /**
@@ -415,7 +441,6 @@ class PageController extends Controller
             $this->showPermissionError();
         } catch (Exception $exception) {
             $this->showErrorNotification(trans('errors.selected_book_chapter_not_found'));
-
             return redirect($page->getUrl('/move'));
         }
 
@@ -455,7 +480,6 @@ class PageController extends Controller
 
         if (!$newParent instanceof Book && !$newParent instanceof Chapter) {
             $this->showErrorNotification(trans('errors.selected_book_chapter_not_found'));
-
             return redirect($page->getUrl('/copy'));
         }
 

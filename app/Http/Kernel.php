@@ -16,6 +16,7 @@ class Kernel extends HttpKernel
         \BookStack\Http\Middleware\TrimStrings::class,
         \BookStack\Http\Middleware\TrustProxies::class,
         \BookStack\Http\Middleware\PreventResponseCaching::class,
+      //  \BookStack\Http\Middleware\CheckCompanyAccess::class,
     ];
 
     /**
@@ -56,5 +57,6 @@ class Kernel extends HttpKernel
         'throttle'   => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'guard'      => \BookStack\Http\Middleware\CheckGuard::class,
         'mfa-setup'  => \BookStack\Http\Middleware\AuthenticatedOrPendingMfa::class,
+        'company.access' => \BookStack\Http\Middleware\CheckCompanyAccess::class, // Adicione esta linha
     ];
 }

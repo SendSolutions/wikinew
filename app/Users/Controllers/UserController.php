@@ -63,7 +63,10 @@ class UserController extends Controller
         $roles = Role::query()->orderBy('display_name', 'asc')->get();
         $this->setPageTitle(trans('settings.users_add_new'));
 
-        return view('users.create', ['authMethod' => $authMethod, 'roles' => $roles]);
+        return view('users.create', [
+            'authMethod' => $authMethod,
+            'roles'      => $roles
+        ]);
     }
 
     /**
@@ -77,7 +80,7 @@ class UserController extends Controller
 
         $authMethod = config('auth.method');
         $sendInvite = ($request->get('send_invite', 'false') === 'true');
-        $externalAuth = $authMethod === 'ldap' || $authMethod === 'saml2' || $authMethod === 'oidc';
+        $externalAuth = in_array($authMethod, ['ldap', 'saml2', 'oidc']);
         $passwordRequired = ($authMethod === 'standard' && !$sendInvite);
 
         $validationRules = [
@@ -92,10 +95,17 @@ class UserController extends Controller
         ];
 
         $validated = $this->validate($request, array_filter($validationRules));
-
+        
         try {
-            DB::transaction(function () use ($validated, $sendInvite) {
-                $this->userRepo->create($validated, $sendInvite);
+            // Cria o usuário e sincroniza as empresas dentro de uma transação
+            $user = DB::transaction(function () use ($validated, $sendInvite, $request) {
+                $user = $this->userRepo->create($validated, $sendInvite);
+                if ($request->has('companies')) {
+                    $user->companies()->sync($request->input('companies'));
+                } else {
+                    $user->companies()->detach();
+                }
+                return $user;
             });
         } catch (UserInviteException $e) {
             Log::error("Failed to send user invite with error: {$e->getMessage()}");
@@ -122,12 +132,16 @@ class UserController extends Controller
         $this->setPageTitle(trans('settings.user_profile'));
         $roles = Role::query()->orderBy('display_name', 'asc')->get();
 
+        // Carrega todas as empresas para enviar à view
+        $companies = \BookStack\Entities\Company::all();
+
         return view('users.edit', [
             'user'                => $user,
             'activeSocialDrivers' => $activeSocialDrivers,
             'mfaMethods'          => $mfaMethods,
             'authMethod'          => $authMethod,
             'roles'               => $roles,
+            'companies'           => $companies, // Variável adicionada
         ]);
     }
 
@@ -158,7 +172,7 @@ class UserController extends Controller
         $user = $this->userRepo->getById($id);
         $this->userRepo->update($user, $validated, true);
 
-        // Save profile image if in request
+        // Salva a imagem de perfil, se houver
         if ($request->hasFile('profile_image')) {
             $imageUpload = $request->file('profile_image');
             $this->imageRepo->destroyImage($user->avatar);
@@ -167,7 +181,7 @@ class UserController extends Controller
             $user->save();
         }
 
-        // Delete the profile image if reset option is in request
+        // Remove a imagem de perfil se solicitado
         if ($request->has('profile_image_reset')) {
             $this->imageRepo->destroyImage($user->avatar);
             $user->image_id = 0;
