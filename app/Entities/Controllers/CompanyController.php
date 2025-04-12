@@ -164,5 +164,34 @@ public function deactivate(int $id)
             ->with('error', 'Erro ao desativar empresa: ' . $e->getMessage());
     }
 }
+public function activate(int $id)
+{
+    // Encontra a empresa pelo ID
+    $company = Company::findOrFail($id);
+
+    // Log para depuração
+    \Illuminate\Support\Facades\Log::info("Ativando empresa: {$id} - {$company->name}");
+    
+    try {
+        // Atualiza a empresa definindo o campo 'active' como true
+        $result = $company->update(['active' => true]);
+        
+        // Log do resultado da atualização
+        \Illuminate\Support\Facades\Log::info("Resultado da atualização: " . ($result ? 'Sucesso' : 'Falha'));
+        
+        // Recarrega a empresa para verificar o status
+        $company = Company::findOrFail($id);
+        \Illuminate\Support\Facades\Log::info("Status após atualização: " . ($company->active ? 'Ativo' : 'Inativo'));
+        
+        return redirect('/settings/companies')
+            ->with('success', 'Empresa ativada com sucesso.');
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error("Erro ao ativar empresa: " . $e->getMessage());
+        
+        return redirect('/settings/companies')
+            ->with('error', 'Erro ao ativar empresa: ' . $e->getMessage());
+    }
+}
+
 }    
 
