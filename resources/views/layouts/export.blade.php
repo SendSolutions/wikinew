@@ -10,42 +10,35 @@
     @include('exports.parts.custom-head')
 </head>
 <body class="export export-format-{{ $format }} export-engine-{{ $engine ?? 'none' }}">
-
     @php
     // Recupera o APP_URL do .env (configurado automaticamente em config/app.php).
     $appUrl = config('app.url');
 
     // Define o nome da imagem com base no valor do APP_URL.
+    // Se a URL contiver "wiki.sendsolutions.com.br", usamos "senderp.png", caso contrário, usamos "send.png".
     $logoFilename = (strpos($appUrl, 'wiki.sendsolutions.com.br') !== false) ? 'senderp.png' : 'send.png';
 
-    // Concatena a URL completa para a imagem.
+    // Concatena a URL completa para a imagem da logo, removendo qualquer barra no final do APP_URL.
     $logoPath = rtrim($appUrl, '/') . '/uploads/images/gallery/2025-03/' . $logoFilename;
-    @endphp
 
+    // Para a imagem do Instagram, é mais adequado usar o helper asset() pois o arquivo está em public/.
+    $instagramImage = asset('uploads/images/gallery/2025-03/instagram.png');
+@endphp
 
+<header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+    <div style="display: flex; align-items: center; flex-wrap: nowrap; gap: 40px;">
+        <!-- Exibe a logo, alterando somente o nome do arquivo conforme a variável -->
+        <a href="https://sendsolutions.com.br/solucoes/" target="_blank">
+            <img src="{{ $logoPath }}" alt="Logo" style="max-height: 50px;">
+        </a>
 
+        <!-- Ícone do Instagram (fixo) -->
+        <a href="https://www.instagram.com/send_solutions" target="_blank">
+            <img src="{{ $instagramImage }}" alt="Instagram" style="max-height: 20px;">
+        </a>
+    </div>
+</header>
 
-    <header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
-        <div style="
-            display: flex;
-            align-items: center;
-            flex-wrap: nowrap;
-            gap: 40px;
-        ">
-            <!-- Exibe a logo, alterando somente o nome do arquivo conforme a variável -->
-            <a href="https://sendsolutions.com.br/solucoes/" target="_blank">
-                <img src="{{ $logoPath }}" alt="Logo"
-                     style="max-height: 50px;">
-            </a>
-
-            <!-- Ícone do Instagram (fixo) -->
-            <a href="https://www.instagram.com/send_solutions" target="_blank">
-                <img src="file://{{ public_path('uploads/images/gallery/2025-03/instagram.png') }}"
-                     alt="Instagram"
-                     style="max-height: 20px;">
-            </a>
-        </div>
-    </header>
     
     @include('layouts.parts.export-body-start')
     <div class="page-content" dir="auto">
