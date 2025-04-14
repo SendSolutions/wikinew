@@ -22,7 +22,7 @@
     $logoPath = rtrim($appUrl, '/') . '/uploads/images/gallery/2025-03/' . $logoFilename;
     @endphp
 
-<img src="{{ $logoPath }}" alt="Logo">
+
 
 
     <header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
@@ -34,8 +34,7 @@
         ">
             <!-- Exibe a logo, alterando somente o nome do arquivo conforme a variável -->
             <a href="https://sendsolutions.com.br/solucoes/" target="_blank">
-                <img src="file://{{ public_path($logoPath) }}"
-                     alt="Logo da Aplicação"
+                <img src="{{ $logoPath }}" alt="Logo"
                      style="max-height: 50px;">
             </a>
 
