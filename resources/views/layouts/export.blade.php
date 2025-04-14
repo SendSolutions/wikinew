@@ -12,14 +12,20 @@
 <body class="export export-format-{{ $format }} export-engine-{{ $engine ?? 'none' }}">
 
     @php
-        // Obtém o link configurado no .env ou no arquivo de configuração
-        $appLink = config('bookstack.app_link');
-        // Caso o link contenha 'wiki.sendsolucions.com.br', usamos "senderp.png".
-        // Do contrário, usamos "send.png".
-        $logoFilename = (strpos($appLink, 'wiki.sendsolutions.com.br') !== false) ? 'senderp.png' : 'send.png';
-        // O caminho da pasta permanece fixo; apenas o nome final varia.
-        $logoPath = 'uploads/images/gallery/2025-03/' . $logoFilename;
-    @endphp
+    // Obtém o link configurado no .env ou no arquivo de configuração
+    $appLink = config('bookstack.app_link');
+
+    // Verifique o valor para debug (remova ou comente após confirmar)
+    // dd($appLink);
+
+    // Caso o link contenha 'wiki.sendsolutions.com.br', usamos "senderp.png".
+    // Do contrário, usamos "send.png".
+    $logoFilename = (strpos($appLink, 'wiki.sendsolutions.com.br') !== false) ? 'senderp.png' : 'send.png';
+
+    // O caminho da pasta permanece fixo; apenas o nome final varia.
+    $logoPath = 'uploads/images/gallery/2025-03/' . $logoFilename;
+@endphp
+
 
     <header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
         <div style="
