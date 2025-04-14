@@ -16,9 +16,9 @@
         $appLink = config('bookstack.app_link');
         // Caso o link contenha 'wiki.sendsolucions.com.br', usamos "senderp.png".
         // Do contrário, usamos "send.png".
-        $logoFilename = (strpos($appLink, 'wiki.sendsolutions.com.br') !== false) ? 'senderp.png' : 'send.png';
+        $logoFilename = (strpos($appLink, 'wiki.sendsolutions.com.br') !== false) ? '2025-04/tZYeyVJqbSJ18g3a-senderp.png' : 'send.png';
         // O caminho da pasta permanece fixo; apenas o nome final varia.
-        $logoPath = 'uploads/images/gallery/2025-03/' . $logoFilename;
+        $logoPath = 'uploads/images/gallery/' . $logoFilename;
     @endphp
 
     <header style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
