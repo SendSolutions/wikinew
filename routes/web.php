@@ -26,13 +26,14 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 //     Route::resource('settings/companies', 'BookStack\Entities\Controllers\CompanyController');
 // });
 
-// Rota pública para acesso à página de registro vinculado a empresa
+/// Rota para exibir o formulário de registro vinculado à empresa
 Route::get('/empresas/{slug}', [\BookStack\Entities\Controllers\CompanyRegistrationController::class, 'showRegistrationForm'])
-    ->name('company.register.form');
+->name('company.register.form');
 
-// Rota para processar o registro de usuário vinculado a empresa
+// Rota para processar o registro de usuário vinculado à empresa
 Route::post('/empresas/{slug}/register', [\BookStack\Entities\Controllers\CompanyRegistrationController::class, 'register'])
-    ->name('company.register');
+->name('company.register');
+
 
 Route::group(['prefix' => 'settings', 'middleware' => ['auth', 'can:users-manage']], function () {
     // Rotas resource padrão, exceto show e destroy

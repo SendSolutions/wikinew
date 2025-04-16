@@ -14,7 +14,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('company.register', ['slug' => $company->name]) }}" method="POST">
+            <!-- Note que aqui alteramos 'slug' para usar $company->slug -->
+            <form action="{{ route('company.register', ['slug' => $company->slug]) }}" method="POST">
                 {{ csrf_field() }}
 
                 <div class="form-group">

@@ -40,7 +40,7 @@
                 @endif
             </div>
 
-            {{-- Status (ativo/inativo) como checkbox simples --}}
+            {{-- Status (ativo/inativo) --}}
             <div class="form-group">
                 <label>
                     <input type="checkbox" name="active" value="1" {{ old('active', $company->active) ? 'checked' : '' }}>
@@ -49,7 +49,7 @@
                 <p class="text-muted small">Se desativada, a empresa não será considerada nas permissões de acesso.</p>
             </div>
 
-            {{-- Seleção de Usuários Vinculados como Checkboxes --}}
+            {{-- Seleção de Usuários Vinculados --}}
             <div class="form-group">
                 <label>Usuários Vinculados</label>
                 <div class="checkbox-group">
@@ -65,26 +65,26 @@
                 </div>
             </div>
 
+            {{-- Link para Registro de Usuários --}}
             <div class="form-group">
                 <label class="setting-list-label mb-xs">Link para Registro de Usuários</label>
-                <p class="small mb-xs">Usuários podem se registrar diretamente para esta empresa utilizando o link abaixo:</p>
-                
+                <p class="small mb-xs">
+                    Usuários podem se registrar diretamente para esta empresa utilizando o link abaixo:
+                </p>
                 <div class="flex-container-row items-center mb-m">
-                    <input type="text" value="{{ url('/empresas/' . $company->slug) }}" class="flex-grow" readonly>
-                    <button type="button" class="button outline ml-s" 
-                            onclick="navigator.clipboard.writeText('{{ url('/empresas/' . $company->slug) }}'); 
-                                     this.innerHTML = 'Copiado!'; 
-                                     setTimeout(() => { this.innerHTML = 'Copiar Link'; }, 2000);">
-                        Copiar Link
-                    </button>
+                    <input type="text"
+                           id="registrationLink"
+                           value="{{ url('/empresas/' . $company->slug) }}"
+                           class="flex-grow"
+                           readonly>
+                    
                 </div>
-                
                 <p class="small text-muted">
-                    <i class="fa fa-info-circle"></i> 
-                    Compartilhe este link para permitir que novos usuários se cadastrem automaticamente
-                    vinculados a esta empresa com o papel de "viewer".
+                    <i class="fa fa-info-circle"></i>
+                    Compartilhe este link para permitir que novos usuários se cadastrem automaticamente vinculados a esta empresa com o papel de "viewer".
                 </p>
             </div>
+
             <div class="grid half gap-xl">
                 <div>
                     <a href="{{ url('/settings/companies') }}" class="button outline">Cancelar</a>
@@ -96,4 +96,5 @@
         </form>
     </div>
 </div>
+
 @stop

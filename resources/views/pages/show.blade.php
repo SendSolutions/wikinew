@@ -83,7 +83,7 @@
         <div class="blended-links">
             @include('entities.meta', ['entity' => $page, 'watchOptions' => $watchOptions])
 
-            @if($book->hasPermissions())
+            {{-- @if($book->hasPermissions())
                 <div class="active-restriction">
                     @if(userCan('restrictions-manage', $book))
                         <a href="{{ $book->getUrl('/permissions') }}" class="entity-meta-item">
@@ -97,8 +97,8 @@
                         </div>
                     @endif
                 </div>
-            @endif
-
+            @endif --}}
+{{-- 
             @if($page->chapter && $page->chapter->hasPermissions())
                 <div class="active-restriction">
                     @if(userCan('restrictions-manage', $page->chapter))
@@ -129,7 +129,7 @@
                         </div>
                     @endif
                 </div>
-            @endif
+            @endif --}}
 
             @if($page->template)
                 <div class="entity-meta-item">
@@ -170,12 +170,12 @@
                 <span>@icon('history')</span>
                 <span>{{ trans('entities.revisions') }}</span>
             </a>
-            @if(userCan('restrictions-manage', $page))
+            {{-- @if(userCan('restrictions-manage', $page))
                 <a href="{{ $page->getUrl('/permissions') }}" data-shortcut="permissions" class="icon-list-item">
                     <span>@icon('lock')</span>
                     <span>{{ trans('entities.permissions') }}</span>
                 </a>
-            @endif
+            @endif --}}
             @if(userCan('page-delete', $page))
                 <a href="{{ $page->getUrl('/delete') }}" data-shortcut="delete" class="icon-list-item">
                     <span>@icon('delete')</span>
