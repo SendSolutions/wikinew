@@ -499,4 +499,22 @@ class PageController extends Controller
 
         return redirect($pageCopy->getUrl());
     }
+
+      /**
+     * Remove the specified page from storage.
+     *
+     * @throws NotFoundException
+     * @throws Throwable
+     */
+    public function destroy(string $bookSlug, string $pageSlug)
+    {
+        $page = $this->queries->findVisibleBySlugsOrFail($bookSlug, $pageSlug);
+        $this->checkOwnablePermission('page-delete', $page);
+        $parent = $page->getParent();
+
+        $this->pageRepo->destroy($page);
+
+        return redirect($parent->getUrl());
+    }
+
 }
