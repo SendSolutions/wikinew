@@ -19,12 +19,21 @@
                 {{ csrf_field() }}
 
                 <div class="form-group">
-                    <label for="name">Nome</label>
-                    <input name="name" id="name" type="text" placeholder="Seu nome completo" value="{{ old('name') }}" required>
+                    <label for="name">Nome Completo</label>
+                    <input
+                        name="name"
+                        id="name"
+                        type="text"
+                        placeholder="Seu nome completo"
+                        value="{{ old('name') }}"
+                        required
+                        pattern="^\S+(\s+\S+)+$"
+                        title="Informe nome e sobrenome">
                     @if($errors->has('name'))
                         <div class="text-danger">{{ $errors->first('name') }}</div>
                     @endif
                 </div>
+                
 
                 <div class="form-group">
                     <label for="email">E-mail</label>

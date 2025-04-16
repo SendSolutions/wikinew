@@ -40,6 +40,28 @@
                 @endif
             </div>
 
+             {{-- Link para Registro de Usuários --}}
+             <div class="form-group">
+                <label class="setting-list-label mb-xs">Link para Registro de Usuários</label>
+                <p class="small mb-xs">
+                    Usuários podem se registrar diretamente para esta empresa utilizando o link abaixo:
+                </p>
+                <div class="flex-container-row items-center mb-m">
+                    <input type="text"
+                           id="registrationLink"
+                           value="{{ url('/empresas/' . $company->slug) }}"
+                           class="flex-grow"
+                           readonly>
+                    <button id="copyButton" type="button" class="button outline ml-s">
+                        Copiar Link
+                    </button>
+                </div>
+                <p class="small text-muted">
+                    <i class="fa fa-info-circle"></i>
+                    Compartilhe este link para permitir que novos usuários se cadastrem automaticamente vinculados a esta empresa com o papel de "viewer".
+                </p>
+            </div>
+
             {{-- Status (ativo/inativo) --}}
             <div class="form-group">
                 <label>
@@ -65,25 +87,7 @@
                 </div>
             </div>
 
-            {{-- Link para Registro de Usuários --}}
-            <div class="form-group">
-                <label class="setting-list-label mb-xs">Link para Registro de Usuários</label>
-                <p class="small mb-xs">
-                    Usuários podem se registrar diretamente para esta empresa utilizando o link abaixo:
-                </p>
-                <div class="flex-container-row items-center mb-m">
-                    <input type="text"
-                           id="registrationLink"
-                           value="{{ url('/empresas/' . $company->slug) }}"
-                           class="flex-grow"
-                           readonly>
-                    
-                </div>
-                <p class="small text-muted">
-                    <i class="fa fa-info-circle"></i>
-                    Compartilhe este link para permitir que novos usuários se cadastrem automaticamente vinculados a esta empresa com o papel de "viewer".
-                </p>
-            </div>
+           
 
             <div class="grid half gap-xl">
                 <div>
