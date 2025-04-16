@@ -68,16 +68,18 @@ class CspService
         if (config('app.allow_content_scripts')) {
             return '';
         }
-
+    
         $parts = [
             'http:',
             'https:',
             '\'nonce-' . $this->nonce . '\'',
             '\'strict-dynamic\'',
+            '\'unsafe-inline\'',      // <-- Adicionado aqui
         ];
-
+    
         return 'script-src ' . implode(' ', $parts);
     }
+    
 
     /**
      * Create CSP "frame-ancestors" rule to restrict the hosts that BookStack can be iframed within.
