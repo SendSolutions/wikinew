@@ -70,7 +70,7 @@
                 </p>
             </div>
 
-            {{-- *Painel de Filtros* --}}
+            {{-- Painel de Filtros --}}
             <div class="form-group">
                 <label class="setting-list-label mb-xs">Filtrar Usuários</label>
                 <div class="flex-container-row items-center mb-m">
@@ -118,6 +118,7 @@
         </form>
     </div>
 </div>
-<script src="{{ asset('js/company-edit.js') }}"></script>
 
+{{-- Script externo com nonce para CSP --}}
+<script src="{{ asset('js/company-edit.js') }}" nonce="{{ $cspNonce }}"></script>
 @stop
