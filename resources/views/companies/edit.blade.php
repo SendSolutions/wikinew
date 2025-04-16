@@ -9,8 +9,8 @@
 
     <div class="card content-wrap auto-height">
         <form action="{{ url('/settings/companies/' . $company->id) }}" method="POST">
-            {!! csrf_field() !!}
-            <input type="hidden" name="_method" value="PUT">
+            @csrf
+            @method('PUT')
 
             {{-- Nome da Empresa --}}
             <div class="form-group">
@@ -22,9 +22,9 @@
                        placeholder="Nome da Empresa"
                        value="{{ old('name', $company->name) }}"
                        required>
-                @if($errors->has('name'))
-                    <div class="text-neg text-small">{{ $errors->first('name') }}</div>
-                @endif
+                @error('name')
+                    <div class="text-neg text-small">{{ $message }}</div>
+                @enderror
             </div>
 
             {{-- Descrição --}}
@@ -35,13 +35,13 @@
                           rows="5"
                           class="form-control"
                           placeholder="Descrição da empresa">{{ old('description', $company->description) }}</textarea>
-                @if($errors->has('description'))
-                    <div class="text-neg text-small">{{ $errors->first('description') }}</div>
-                @endif
+                @error('description')
+                    <div class="text-neg text-small">{{ $message }}</div>
+                @enderror
             </div>
 
-             {{-- Link para Registro de Usuários --}}
-             <div class="form-group">
+            {{-- Link para Registro de Usuários --}}
+            <div class="form-group">
                 <label class="setting-list-label mb-xs">Link para Registro de Usuários</label>
                 <p class="small mb-xs">
                     Usuários podem se registrar diretamente para esta empresa utilizando o link abaixo:
@@ -50,45 +50,63 @@
                     <input type="text"
                            id="registrationLink"
                            value="{{ url('/empresas/' . $company->slug) }}"
-                           class="flex-grow"
+                           class="flex-grow form-control"
                            readonly>
                     <button id="copyButton" type="button" class="button outline ml-s">
                         Copiar Link
                     </button>
                 </div>
-                <p class="small text-muted">
-                    <i class="fa fa-info-circle"></i>
-                    Compartilhe este link para permitir que novos usuários se cadastrem automaticamente vinculados a esta empresa com o papel de "viewer".
-                </p>
             </div>
 
             {{-- Status (ativo/inativo) --}}
             <div class="form-group">
                 <label>
-                    <input type="checkbox" name="active" value="1" {{ old('active', $company->active) ? 'checked' : '' }}>
+                    <input type="checkbox" name="active" value="1"
+                           {{ old('active', $company->active) ? 'checked' : '' }}>
                     Empresa Ativa
                 </label>
-                <p class="text-muted small">Se desativada, a empresa não será considerada nas permissões de acesso.</p>
+                <p class="text-muted small">
+                    Se desativada, a empresa não será considerada nas permissões de acesso.
+                </p>
             </div>
 
-            {{-- Seleção de Usuários Vinculados --}}
+            {{-- *Painel de Filtros* --}}
+            <div class="form-group">
+                <label class="setting-list-label mb-xs">Filtrar Usuários</label>
+                <div class="flex-container-row items-center mb-m">
+                    <select id="userFilter" class="form-control small mr-m">
+                        <option value="all">Todos</option>
+                        <option value="selected">Selecionados</option>
+                        <option value="unselected">Não Selecionados</option>
+                    </select>
+                    <input type="text"
+                           id="userSearch"
+                           class="form-control small flex-grow"
+                           placeholder="Buscar por nome...">
+                </div>
+            </div>
+
+            {{-- Lista de Usuários Vinculados --}}
             <div class="form-group">
                 <label>Usuários Vinculados</label>
-                <div class="checkbox-group">
+                <div id="usersList" class="checkbox-group" style="max-height:300px; overflow-y:auto;">
                     @foreach($users as $user)
-                        <div class="checkbox">
+                        @php $checked = in_array($user->id, $companyUsers) @endphp
+                        <div class="checkbox user-row">
                             <label>
-                                <input type="checkbox" name="users[]" value="{{ $user->id }}"
-                                       {{ in_array($user->id, $companyUsers) ? 'checked' : '' }}>
-                                {{ $user->name }} ({{ $user->email }})
+                                <input type="checkbox"
+                                       name="users[]"
+                                       value="{{ $user->id }}"
+                                       {{ $checked ? 'checked' : '' }}>
+                                <span class="user-name">{{ $user->name }}</span>
+                                <small class="text-muted">({{ $user->email }})</small>
                             </label>
                         </div>
                     @endforeach
                 </div>
             </div>
 
-           
-
+            {{-- Ações --}}
             <div class="grid half gap-xl">
                 <div>
                     <a href="{{ url('/settings/companies') }}" class="button outline">Cancelar</a>
@@ -101,4 +119,49 @@
     </div>
 </div>
 
+{{-- JavaScript para filtros e copiar link --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Copy-button
+    document.getElementById('copyButton').addEventListener('click', function() {
+        const linkInput = document.getElementById('registrationLink');
+        linkInput.select();
+        document.execCommand('copy');
+        this.textContent = 'Copiado!';
+        setTimeout(() => this.textContent = 'Copiar Link', 2000);
+    });
+
+    // Filtros
+    const filterSelect = document.getElementById('userFilter');
+    const searchInput  = document.getElementById('userSearch');
+    const userRows     = Array.from(document.querySelectorAll('#usersList .user-row'));
+
+    function applyUserFilters() {
+        const filter = filterSelect.value;
+        const term   = searchInput.value.trim().toLowerCase();
+
+        userRows.forEach(row => {
+            const checkbox = row.querySelector('input[type=checkbox]');
+            const name     = row.querySelector('.user-name').textContent.toLowerCase();
+            const isChecked= checkbox.checked;
+
+            // condição de filtro status
+            let okStatus = (filter === 'all')
+                        || (filter === 'selected'   && isChecked)
+                        || (filter === 'unselected' && !isChecked);
+
+            // condição de busca por nome
+            let okSearch = name.includes(term);
+
+            row.style.display = (okStatus && okSearch) ? '' : 'none';
+        });
+    }
+
+    filterSelect.addEventListener('change', applyUserFilters);
+    searchInput.addEventListener('input', applyUserFilters);
+
+    // já aplica no carregamento
+    applyUserFilters();
+});
+</script>
 @stop
