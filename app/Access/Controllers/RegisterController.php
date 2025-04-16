@@ -1,4 +1,5 @@
 <?php
+//registercontroller
 
 namespace BookStack\Access\Controllers;
 

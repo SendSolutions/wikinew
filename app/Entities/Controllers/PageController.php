@@ -157,7 +157,8 @@ class PageController extends Controller
             if ($pageCompanies->isNotEmpty()) {
                 // Se o usuário não estiver logado, bloqueia o acesso
                 if (!Auth::check()) {
-                    return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                    // Redireciona para a página anterior, ou para a home se não houver uma página anterior
+                    return redirect()->back()->with('error', 'Você não tem permissão para acessar esta página.');
                 }
                 
                 $user = Auth::user();
@@ -201,7 +202,8 @@ class PageController extends Controller
                 if ($isViewer) {
                     // Se o usuário não tiver empresas vinculadas, bloqueia o acesso
                     if ($user->companies->isEmpty()) {
-                        return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                        // Redireciona para a página anterior, ou para a home se não houver uma página anterior
+                        return redirect()->back()->with('error', 'Você não tem permissão para acessar esta página.');
                     }
                     
                     // Verifica se há interseção entre as empresas do usuário e as da página
@@ -209,7 +211,8 @@ class PageController extends Controller
                     $pageCompanyIds = $pageCompanies->pluck('id')->toArray();
                     
                     if (empty(array_intersect($userCompanyIds, $pageCompanyIds))) {
-                        return redirect('/')->with('error', 'Você não tem permissão para acessar esta página.');
+                        // Redireciona para a página anterior, ou para a home se não houver uma página anterior
+                        return redirect()->back()->with('error', 'Você não tem permissão para acessar esta página.');
                     }
                 }
                 // Usuários que não são "viewer" não estão sujeitos à restrição por empresa

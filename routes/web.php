@@ -1,5 +1,5 @@
 <?php
-
+//web.php
 use BookStack\Access\Controllers as AccessControllers;
 use BookStack\Activity\Controllers as ActivityControllers;
 use BookStack\Api\ApiDocsController;
@@ -25,6 +25,14 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 // Route::group(['middleware' => ['auth']], function () {
 //     Route::resource('settings/companies', 'BookStack\Entities\Controllers\CompanyController');
 // });
+
+// Rota pública para acesso à página de registro vinculado a empresa
+Route::get('/empresas/{slug}', [\BookStack\Entities\Controllers\CompanyRegistrationController::class, 'showRegistrationForm'])
+    ->name('company.register.form');
+
+// Rota para processar o registro de usuário vinculado a empresa
+Route::post('/empresas/{slug}/register', [\BookStack\Entities\Controllers\CompanyRegistrationController::class, 'register'])
+    ->name('company.register');
 
 Route::group(['prefix' => 'settings', 'middleware' => ['auth', 'can:users-manage']], function () {
     // Rotas resource padrão, exceto show e destroy

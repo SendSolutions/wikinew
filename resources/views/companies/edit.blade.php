@@ -65,6 +65,26 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                <label class="setting-list-label mb-xs">Link para Registro de Usuários</label>
+                <p class="small mb-xs">Usuários podem se registrar diretamente para esta empresa utilizando o link abaixo:</p>
+                
+                <div class="flex-container-row items-center mb-m">
+                    <input type="text" value="{{ url('/empresas/' . $company->slug) }}" class="flex-grow" readonly>
+                    <button type="button" class="button outline ml-s" 
+                            onclick="navigator.clipboard.writeText('{{ url('/empresas/' . $company->slug) }}'); 
+                                     this.innerHTML = 'Copiado!'; 
+                                     setTimeout(() => { this.innerHTML = 'Copiar Link'; }, 2000);">
+                        Copiar Link
+                    </button>
+                </div>
+                
+                <p class="small text-muted">
+                    <i class="fa fa-info-circle"></i> 
+                    Compartilhe este link para permitir que novos usuários se cadastrem automaticamente
+                    vinculados a esta empresa com o papel de "viewer".
+                </p>
+            </div>
             <div class="grid half gap-xl">
                 <div>
                     <a href="{{ url('/settings/companies') }}" class="button outline">Cancelar</a>
